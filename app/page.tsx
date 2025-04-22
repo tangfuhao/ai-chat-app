@@ -284,11 +284,39 @@ export default function Home() {
           </div>
 
           <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+            {messages.length > 0 && !isLoading && (
+              <div className="mb-4">
+                <button
+                  onClick={handleRegenerate}
+                  className="w-full px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center space-x-2"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="lucide lucide-refresh-cw"
+                  >
+                    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+                    <path d="M21 3v5h-5"></path>
+                    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+                    <path d="M3 21v-5h5"></path>
+                  </svg>
+                  <span>重新生成</span>
+                </button>
+              </div>
+            )}
             <ChatInput
               input={input}
               handleInputChange={handleInputChange}
               handleSubmit={handleSubmit}
               isLoading={isLoading}
+              messages={messages}
             />
             {error && (
               <div className="mt-2 p-2 text-sm text-red-500 border border-red-500 rounded">
