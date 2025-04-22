@@ -13,6 +13,7 @@ interface UseChatOptions {
     apiKey: string
     model: string
     provider: string
+    temperature: number
   }
   onFinish?: (messages: Message[]) => void
   onError?: (error: Error) => void
@@ -64,7 +65,8 @@ export function useChat({
           messages: [...messages, newMessage],
           apiKey: body.apiKey,
           model: body.model,
-          provider: body.provider
+          provider: body.provider,
+          temperature: body.temperature
         }),
       })
 
@@ -113,6 +115,8 @@ export function useChat({
           messages: messagesCopy,
           apiKey: body?.apiKey,
           model: body?.model,
+          provider: body?.provider,
+          temperature: body?.temperature
         }),
       })
 
@@ -130,7 +134,7 @@ export function useChat({
 
       const updatedMessages = [...messagesCopy, responseMessage]
       setMessages(updatedMessages)
-      onFinish?.()
+      onFinish?.(updatedMessages)
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to regenerate message')
       setError(error)

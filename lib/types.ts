@@ -23,4 +23,13 @@ export interface Settings {
   apiKey: string
   model: string
   provider: AIProvider
+  temperature: number
+}
+
+// 默认设置
+export const DefaultSettings: Settings = {
+  apiKey: '',
+  model: DefaultModels.openai,
+  provider: 'openai',
+  temperature: 0.7
 }

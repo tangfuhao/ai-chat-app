@@ -9,7 +9,7 @@ interface Message {
 export const maxDuration = 300
 
 export async function POST(req: Request) {
-  const { messages, apiKey, model, provider } = await req.json()
+  const { messages, apiKey, model, provider, temperature } = await req.json()
 
   // 参数验证
   if (!apiKey) {
@@ -20,9 +20,9 @@ export async function POST(req: Request) {
     // 根据提供商处理请求
     switch (provider) {
       case 'openai':
-        return handleOpenAIRequest(apiKey, messages, model)
+        return handleOpenAIRequest(apiKey, messages, model, temperature)
       case 'anthropic':
-        return handleAnthropicRequest(apiKey, messages, model)
+        return handleAnthropicRequest(apiKey, messages, model, temperature)
       default:
         return errorResponse(400, "未知的模型提供商")
     }
@@ -39,12 +39,14 @@ export async function POST(req: Request) {
 async function handleOpenAIRequest(
   apiKey: string,
   messages: Message[],
-  model: string
+  model: string,
+  temperature: number = 0.7
 ) {
   const openai = new OpenAI({ apiKey })
   const response = await openai.chat.completions.create({
     model,
     messages: messages.map(formatOpenAIMessage),
+    temperature,
   })
 
   return new Response(
@@ -60,13 +62,15 @@ async function handleOpenAIRequest(
 async function handleAnthropicRequest(
   apiKey: string,
   messages: Message[],
-  model: string
+  model: string,
+  temperature: number = 0.7
 ) {
   const anthropic = new Anthropic({ apiKey })
   const response = await anthropic.messages.create({
     model,
     messages: messages.map(formatClaudeMessage),
     max_tokens: 4096,
+    temperature,
   })
 
   const content = response.content[0].type === 'text' 

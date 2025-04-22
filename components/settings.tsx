@@ -1,25 +1,31 @@
 "use client"
 
 import { useState } from "react"
-import { DefaultModels, type AIProvider } from "@/lib/types"
+import { DefaultModels, DefaultSettings, type AIProvider } from "@/lib/types"
 
 interface SettingsProps {
   apiKey: string
   provider: AIProvider
-  onSave: (apiKey: string, model: string, provider: AIProvider) => void
+  temperature?: number
+  onSave: (apiKey: string, model: string, provider: AIProvider, temperature: number) => void
   onClose: () => void
 }
 
-export function Settings({ apiKey, provider, onSave, onClose }: SettingsProps) {
+export function Settings({ 
+  apiKey, 
+  provider, 
+  temperature = DefaultSettings.temperature,
+  onSave, 
+  onClose 
+}: SettingsProps) {
   const [inputApiKey, setInputApiKey] = useState(apiKey)
   const [selectedProvider, setSelectedProvider] = useState<AIProvider>(provider)
   const [customModelName, setCustomModelName] = useState("")
+  const [tempValue, setTempValue] = useState(temperature)
 
   const handleSave = () => {
-    // Use custom model name if provided, otherwise use the selected model
     const finalModel = customModelName.trim() ? customModelName.trim() : DefaultModels[selectedProvider]
-    console.log("handleSave: ", "finalModel", finalModel, "selectedProvider", selectedProvider)
-    onSave(inputApiKey, finalModel, selectedProvider)
+    onSave(inputApiKey, finalModel, selectedProvider, tempValue)
   }
 
   return (
@@ -53,7 +59,7 @@ export function Settings({ apiKey, provider, onSave, onClose }: SettingsProps) {
             </select>
           </div>
 
-          <div className="mb-6">
+          <div className="mb-4">
             <label className="block text-sm font-medium mb-1">自定义模型名称 (可选)</label>
             <input
               type="text"
@@ -64,6 +70,22 @@ export function Settings({ apiKey, provider, onSave, onClose }: SettingsProps) {
             />
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
               如需使用特定版本模型，可在此处输入完整模型名称
+            </p>
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-1">Temperature ({tempValue})</label>
+            <input
+              type="range"
+              min="0"
+              max="2"
+              step="0.1"
+              value={tempValue}
+              onChange={(e) => setTempValue(parseFloat(e.target.value))}
+              className="w-full"
+            />
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              调整响应的随机性：0 表示更确定的响应，2 表示更具创造性的响应
             </p>
           </div>
 

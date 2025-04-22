@@ -5,7 +5,7 @@ import { Settings } from "@/components/settings"
 import { ChatHistory } from "@/components/chat-history"
 import { ChatMessages } from "@/components/chat-messages"
 import { ChatInput } from "@/components/chat-input"
-import { type ChatSession, type AIProvider, DefaultModels } from "@/lib/types"
+import { type ChatSession, type AIProvider, DefaultModels, DefaultSettings } from "@/lib/types"
 import { getStoredSessions, storeSession, getStoredSettings } from "@/lib/storage"
 import { useChat, type Message } from "@/hooks/useChat"
 
@@ -16,6 +16,7 @@ export default function Home() {
   const [apiKey, setApiKey] = useState("")
   const [selectedModel, setSelectedModel] = useState<string>(DefaultModels["openai"])
   const [selectedProvider, setSelectedProvider] = useState<AIProvider>("openai")
+  const [temperature, setTemperature] = useState(DefaultSettings.temperature)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const { messages, input, handleInputChange, handleSubmit, setMessages, isLoading, error, reload } = useChat({
@@ -25,6 +26,7 @@ export default function Home() {
       apiKey,
       model: selectedModel,
       provider: selectedProvider,
+      temperature,
     },
     onFinish: (updatedMessages: Message[]) => {
       if (currentSessionId) {
@@ -61,6 +63,7 @@ export default function Home() {
       setApiKey(settings.apiKey || "")
       setSelectedProvider(settings.provider || "openai")
       setSelectedModel(settings.model || DefaultModels["openai"])
+      setTemperature(settings.temperature || DefaultSettings.temperature)
     }
   }, [])
 
@@ -141,11 +144,12 @@ export default function Home() {
     storeSession("sessions", updatedSessions)
   }
 
-  const saveSettings = (apiKey: string, model: string, provider: AIProvider) => {
+  const saveSettings = (apiKey: string, model: string, provider: AIProvider, temperature: number) => {
     setApiKey(apiKey)
     setSelectedModel(model)
     setSelectedProvider(provider)
-    localStorage.setItem("settings", JSON.stringify({ apiKey, model, provider }))
+    setTemperature(temperature)
+    localStorage.setItem("settings", JSON.stringify({ apiKey, model, provider, temperature }))
     setIsSettingsOpen(false)
   }
 
@@ -334,6 +338,7 @@ export default function Home() {
         <Settings
           apiKey={apiKey}
           provider={selectedProvider}
+          temperature={temperature}
           onSave={saveSettings}
           onClose={() => setIsSettingsOpen(false)}
         />
