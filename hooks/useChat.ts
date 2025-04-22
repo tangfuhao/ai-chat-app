@@ -34,7 +34,11 @@ export function useChat({
   const handleSubmit = useCallback(async (e?: React.FormEvent) => {
     e?.preventDefault()
     
-    if (!input.trim() || !body?.apiKey) return
+    if (!input.trim()) return
+    if (!body?.apiKey) {
+      alert('API key is required')
+      return
+    }
 
     const newMessage: Message = {
       id: `msg-${Date.now()}`,

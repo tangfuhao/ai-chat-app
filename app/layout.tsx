@@ -8,7 +8,6 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata = {
   title: "AI Chat",
   description: "A versatile AI chat application supporting multiple models",
-    generator: 'v0.dev'
 }
 
 export default function RootLayout({
