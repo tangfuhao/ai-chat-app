@@ -1,13 +1,16 @@
 export type MessageType = "user" | "assistant" | "system"
 
-export type AIModel = "gpt-4o" | "claude-3-5-sonnet" | "grok-1" | "deepseek-coder"
+export type AIModel = 
+  | 'gpt-3.5-turbo'
+  | 'gpt-4'
+  | 'claude-3-opus-20240229'
 
 export interface ChatSession {
   id: string
   title: string
+  messageCount: number
   lastUpdated: string
   model: AIModel
-  messageCount: number
 }
 
 export interface Settings {

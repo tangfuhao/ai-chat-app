@@ -1,20 +1,20 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { useChat } from "@ai-sdk/react"
 import { Settings } from "@/components/settings"
 import { ChatHistory } from "@/components/chat-history"
 import { ChatMessages } from "@/components/chat-messages"
 import { ChatInput } from "@/components/chat-input"
-import type { MessageType, ChatSession, AIModel } from "@/lib/types"
+import type { ChatSession, AIModel } from "@/lib/types"
 import { getStoredSessions, storeSession, getStoredSettings } from "@/lib/storage"
+import { useChat, type Message } from "@/hooks/useChat"
 
 export default function Home() {
   const [sessions, setSessions] = useState<ChatSession[]>([])
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [apiKey, setApiKey] = useState("")
-  const [selectedModel, setSelectedModel] = useState<AIModel>("gpt-4o")
+  const [selectedModel, setSelectedModel] = useState<AIModel>("gpt-3.5-turbo")
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const { messages, input, handleInputChange, handleSubmit, setMessages, isLoading, error, reload } = useChat({
@@ -38,6 +38,9 @@ export default function Home() {
         }
       }
     },
+    onError: (error) => {
+      console.error('Chat error:', error)
+    },
   })
 
   useEffect(() => {
@@ -53,7 +56,7 @@ export default function Home() {
     const settings = getStoredSettings()
     if (settings) {
       setApiKey(settings.apiKey || "")
-      setSelectedModel(settings.model || "gpt-4o")
+      setSelectedModel(settings.model || "gpt-3.5-turbo")
     }
   }, [])
 
@@ -162,8 +165,8 @@ export default function Home() {
   }
 
   const handleMessageRoleChange = (index: number) => {
-    const roles: MessageType[] = ["user", "assistant", "system"]
-    const currentRole = messages[index].role as MessageType
+    const roles: Message["role"][] = ["user", "assistant", "system"]
+    const currentRole = messages[index].role as Message["role"]
     const currentIndex = roles.indexOf(currentRole)
     const nextRole = roles[(currentIndex + 1) % roles.length]
 
@@ -177,7 +180,7 @@ export default function Home() {
   }
 
   const handleInsertMessage = (index: number) => {
-    const newMessage = { id: `msg-${Date.now()}`, role: "user", content: "" }
+    const newMessage: Message = { id: `msg-${Date.now()}`, role: "user", content: "" }
     const updatedMessages = [...messages.slice(0, index + 1), newMessage, ...messages.slice(index + 1)]
     setMessages(updatedMessages)
   }
@@ -206,7 +209,7 @@ export default function Home() {
     <div className="flex flex-col h-screen bg-gray-100 dark:bg-gray-900">
       {/* Top Bar */}
       <header className="flex justify-between items-center py-2 px-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-        <h1 className="text-xl font-semibold">{selectedModel === "gpt-4o" ? "ChatGPT" : selectedModel}</h1>
+        <h1 className="text-xl font-semibold">{selectedModel === "gpt-3.5-turbo" ? "ChatGPT" : selectedModel}</h1>
         <button
           onClick={() => setIsSettingsOpen(true)}
           className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
@@ -283,11 +286,9 @@ export default function Home() {
           <div className="p-4 border-t border-gray-200 dark:border-gray-700">
             <ChatInput
               input={input}
-              onChange={handleInputChange}
-              onSubmit={handleSubmit}
-              onRegenerate={handleRegenerate}
+              handleInputChange={handleInputChange}
+              handleSubmit={handleSubmit}
               isLoading={isLoading}
-              messages={messages} // Pass the messages from useChat
             />
             {error && (
               <div className="mt-2 p-2 text-sm text-red-500 border border-red-500 rounded">

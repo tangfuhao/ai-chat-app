@@ -99,7 +99,9 @@ export function ChatMessages({
                   className="p-3 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
                   onDoubleClick={() => startEditing(index)}
                 >
-                  <ReactMarkdown className="prose dark:prose-invert max-w-none">{message.content}</ReactMarkdown>
+                  <div className="prose dark:prose-invert max-w-none">
+                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                  </div>
                 </div>
               )}
             </div>
