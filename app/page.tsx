@@ -5,7 +5,7 @@ import { Settings } from "@/components/settings"
 import { ChatHistory } from "@/components/chat-history"
 import { ChatMessages } from "@/components/chat-messages"
 import { ChatInput } from "@/components/chat-input"
-import type { ChatSession, AIModel } from "@/lib/types"
+import { type ChatSession, type AIProvider, DefaultModels } from "@/lib/types"
 import { getStoredSessions, storeSession, getStoredSettings } from "@/lib/storage"
 import { useChat, type Message } from "@/hooks/useChat"
 
@@ -14,26 +14,29 @@ export default function Home() {
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [apiKey, setApiKey] = useState("")
-  const [selectedModel, setSelectedModel] = useState<AIModel>("gpt-3.5-turbo")
+  const [selectedModel, setSelectedModel] = useState<string>(DefaultModels["openai"])
+  const [selectedProvider, setSelectedProvider] = useState<AIProvider>("openai")
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const { messages, input, handleInputChange, handleSubmit, setMessages, isLoading, error, reload } = useChat({
     id: currentSessionId || undefined,
+    initialMessages: currentSessionId ? JSON.parse(localStorage.getItem(`chat_messages_${currentSessionId}`) || '[]') : [],
     body: {
       apiKey,
       model: selectedModel,
+      provider: selectedProvider,
     },
-    onFinish: () => {
+    onFinish: (updatedMessages: Message[]) => {
       if (currentSessionId) {
         const updatedSession = sessions.find((s) => s.id === currentSessionId)
         if (updatedSession) {
           const updatedSessions = sessions.map((s) =>
             s.id === currentSessionId
-              ? { ...s, messageCount: messages.length + 1, lastUpdated: new Date().toISOString() }
+              ? { ...s, messageCount: updatedMessages.length, lastUpdated: new Date().toISOString() }
               : s,
           )
           setSessions(updatedSessions)
-          storeSession(currentSessionId, messages)
+          storeSession(currentSessionId, updatedMessages)
           storeSession("sessions", updatedSessions)
         }
       }
@@ -56,7 +59,8 @@ export default function Home() {
     const settings = getStoredSettings()
     if (settings) {
       setApiKey(settings.apiKey || "")
-      setSelectedModel(settings.model || "gpt-3.5-turbo")
+      setSelectedProvider(settings.provider || "openai")
+      setSelectedModel(settings.model || DefaultModels["openai"])
     }
   }, [])
 
@@ -81,7 +85,6 @@ export default function Home() {
       id: newSessionId,
       title: "New Chat",
       lastUpdated: new Date().toISOString(),
-      model: selectedModel,
       messageCount: 0,
     }
 
@@ -116,7 +119,7 @@ export default function Home() {
       const duplicatedSession: ChatSession = {
         ...sessionToDuplicate,
         id: newSessionId,
-        title: `${sessionToDuplicate.title} (复制)`,
+        title: `${sessionToDuplicate.title}`,
         lastUpdated: new Date().toISOString(),
       }
 
@@ -138,10 +141,11 @@ export default function Home() {
     storeSession("sessions", updatedSessions)
   }
 
-  const saveSettings = (apiKey: string, model: AIModel) => {
+  const saveSettings = (apiKey: string, model: string, provider: AIProvider) => {
     setApiKey(apiKey)
     setSelectedModel(model)
-    localStorage.setItem("settings", JSON.stringify({ apiKey, model }))
+    setSelectedProvider(provider)
+    localStorage.setItem("settings", JSON.stringify({ apiKey, model, provider }))
     setIsSettingsOpen(false)
   }
 
@@ -316,7 +320,6 @@ export default function Home() {
               handleInputChange={handleInputChange}
               handleSubmit={handleSubmit}
               isLoading={isLoading}
-              messages={messages}
             />
             {error && (
               <div className="mt-2 p-2 text-sm text-red-500 border border-red-500 rounded">
@@ -330,7 +333,7 @@ export default function Home() {
       {isSettingsOpen && (
         <Settings
           apiKey={apiKey}
-          model={selectedModel}
+          provider={selectedProvider}
           onSave={saveSettings}
           onClose={() => setIsSettingsOpen(false)}
         />

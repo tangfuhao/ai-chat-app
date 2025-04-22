@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 
 export interface Message {
   id: string
@@ -8,21 +8,24 @@ export interface Message {
 
 interface UseChatOptions {
   id?: string
+  initialMessages?: Message[]
   body?: {
     apiKey: string
     model: string
+    provider: string
   }
-  onFinish?: () => void
+  onFinish?: (messages: Message[]) => void
   onError?: (error: Error) => void
 }
 
 export function useChat({
   id,
+  initialMessages = [],
   body,
   onFinish,
   onError,
 }: UseChatOptions = {}) {
-  const [messages, setMessages] = useState<Message[]>([])
+  const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
@@ -61,6 +64,7 @@ export function useChat({
           messages: [...messages, newMessage],
           apiKey: body.apiKey,
           model: body.model,
+          provider: body.provider
         }),
       })
 
@@ -70,14 +74,15 @@ export function useChat({
       }
 
       const data = await response.json()
-      const assistantMessage: Message = {
+      const responseMessage: Message = {
         id: `msg-${Date.now()}`,
-        role: 'assistant',
+        role: data.role,
         content: data.content,
       }
 
-      setMessages(prev => [...prev, assistantMessage])
-      onFinish?.()
+      const updatedMessages = [...messages, newMessage, responseMessage]
+      setMessages(updatedMessages)
+      onFinish?.(updatedMessages)
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to send message')
       setError(error)
@@ -117,13 +122,14 @@ export function useChat({
       }
 
       const data = await response.json()
-      const assistantMessage: Message = {
+      const responseMessage: Message = {
         id: `msg-${Date.now()}`,
-        role: 'assistant',
+        role: data.role,
         content: data.content,
       }
 
-      setMessages(prev => [...messagesCopy, assistantMessage])
+      const updatedMessages = [...messagesCopy, responseMessage]
+      setMessages(updatedMessages)
       onFinish?.()
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to regenerate message')

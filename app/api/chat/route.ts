@@ -6,44 +6,19 @@ interface Message {
   content: string
 }
 
-// 模型配置类型
-interface ModelConfig {
-  provider: 'openai' | 'anthropic'
-  baseURL?: string
-  requiresSystemRoleConversion?: boolean
-}
-
-// 支持的模型配置
-const MODEL_CONFIG: Record<string, ModelConfig> = {
-  // OpenAI
-  'gpt-3.5-turbo': { provider: 'openai' },
-  'gpt-4': { provider: 'openai' },
-  
-  // Anthropic
-  'claude-3-opus-20240229': { 
-    provider: 'anthropic',
-    requiresSystemRoleConversion: true
-  },
-}
-
 export const maxDuration = 300
 
 export async function POST(req: Request) {
-  const { messages, apiKey, model } = await req.json()
+  const { messages, apiKey, model, provider } = await req.json()
 
   // 参数验证
   if (!apiKey) {
     return errorResponse(400, "请提供有效的API Key")
   }
 
-  const modelConfig = MODEL_CONFIG[model]
-  if (!modelConfig) {
-    return errorResponse(400, "不支持的模型类型")
-  }
-
   try {
     // 根据提供商处理请求
-    switch (modelConfig.provider) {
+    switch (provider) {
       case 'openai':
         return handleOpenAIRequest(apiKey, messages, model)
       case 'anthropic':
@@ -73,7 +48,10 @@ async function handleOpenAIRequest(
   })
 
   return new Response(
-    JSON.stringify({ content: response.choices[0].message.content }),
+    JSON.stringify({
+      role: response.choices[0].message.role,
+      content: response.choices[0].message.content
+    }),
     { headers: { 'Content-Type': 'application/json' } }
   )
 }
@@ -88,11 +66,18 @@ async function handleAnthropicRequest(
   const response = await anthropic.messages.create({
     model,
     messages: messages.map(formatClaudeMessage),
-    max_tokens: 1024,
+    max_tokens: 4096,
   })
 
+  const content = response.content[0].type === 'text' 
+    ? response.content[0].text 
+    : ''
+
   return new Response(
-    JSON.stringify({ content: response.content }),
+    JSON.stringify({
+      role: response.role,
+      content
+    }),
     { headers: { 'Content-Type': 'application/json' } }
   )
 }

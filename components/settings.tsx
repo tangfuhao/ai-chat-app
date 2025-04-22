@@ -1,24 +1,25 @@
 "use client"
 
 import { useState } from "react"
-import type { AIModel } from "@/lib/types"
+import { DefaultModels, type AIProvider } from "@/lib/types"
 
 interface SettingsProps {
   apiKey: string
-  model: AIModel
-  onSave: (apiKey: string, model: AIModel) => void
+  provider: AIProvider
+  onSave: (apiKey: string, model: string, provider: AIProvider) => void
   onClose: () => void
 }
 
-export function Settings({ apiKey, model, onSave, onClose }: SettingsProps) {
+export function Settings({ apiKey, provider, onSave, onClose }: SettingsProps) {
   const [inputApiKey, setInputApiKey] = useState(apiKey)
-  const [selectedModel, setSelectedModel] = useState<AIModel>(model)
+  const [selectedProvider, setSelectedProvider] = useState<AIProvider>(provider)
   const [customModelName, setCustomModelName] = useState("")
 
   const handleSave = () => {
     // Use custom model name if provided, otherwise use the selected model
-    const finalModel = customModelName.trim() ? customModelName.trim() : selectedModel
-    onSave(inputApiKey, finalModel as AIModel)
+    const finalModel = customModelName.trim() ? customModelName.trim() : DefaultModels[selectedProvider]
+    console.log("handleSave: ", "finalModel", finalModel, "selectedProvider", selectedProvider)
+    onSave(inputApiKey, finalModel, selectedProvider)
   }
 
   return (
@@ -41,14 +42,14 @@ export function Settings({ apiKey, model, onSave, onClose }: SettingsProps) {
           <div className="mb-4">
             <label className="block text-sm font-medium mb-1">模型</label>
             <select
-              value={selectedModel}
-              onChange={(e) => setSelectedModel(e.target.value as AIModel)}
+              value={selectedProvider}
+              onChange={(e) => setSelectedProvider(e.target.value as AIProvider)}
               className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700"
             >
-              <option value="gpt-4o">ChatGPT (GPT-4o)</option>
-              <option value="claude-3-5-sonnet">Claude (3.5 Sonnet)</option>
-              <option value="grok-1">Grok</option>
-              <option value="deepseek-coder">DeepSeek</option>
+              <option value="openai">ChatGPT (GPT-4o)</option>
+              <option value="anthropic">Claude (3.5 Sonnet V2)</option>
+              <option value="grok">Grok</option>
+              <option value="deepseek">DeepSeek</option>
             </select>
           </div>
 
@@ -58,7 +59,7 @@ export function Settings({ apiKey, model, onSave, onClose }: SettingsProps) {
               type="text"
               value={customModelName}
               onChange={(e) => setCustomModelName(e.target.value)}
-              placeholder={`例如：${selectedModel}-version-2`}
+              placeholder={`例如：claude-3-5-sonnet-20241022`}
               className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700"
             />
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
