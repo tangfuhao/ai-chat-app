@@ -44,7 +44,7 @@ export function ChatInput({
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
-            className="absolute right-3 bottom-3 p-1 rounded-full bg-blue-500 text-white disabled:bg-gray-400"
+            className="absolute right-3 bottom-3 p-2 rounded-full bg-blue-500 text-white disabled:bg-gray-400"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
