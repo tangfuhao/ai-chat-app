@@ -78,7 +78,7 @@ export default function Home() {
 
   useEffect(() => {
     scrollToBottom()
-  }, [messages])
+  }, [messages.length])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
