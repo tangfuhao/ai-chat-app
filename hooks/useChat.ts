@@ -99,13 +99,12 @@ export function useChat({
 
     setIsLoading(true)
     setError(null)
+    const lastMessageIndex = messages.length - 1
+    if (lastMessageIndex === -1) return
+    const messagesCopy = messages.slice(0, lastMessageIndex)
+    setMessages(messagesCopy)
 
     try {
-      const lastMessageIndex = messages.length - 1
-      if (lastMessageIndex === -1) return
-
-      const messagesCopy = messages.slice(0, lastMessageIndex)
-      
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -136,6 +135,7 @@ export function useChat({
       setMessages(updatedMessages)
       onFinish?.(updatedMessages)
     } catch (err) {
+      setMessages(messages)
       const error = err instanceof Error ? err : new Error('Failed to regenerate message')
       setError(error)
       onError?.(error)
