@@ -41,12 +41,15 @@ export const messageEditHistory: Record<string, string[]> = {};
 export let globalUndoStack: string[] = [];
 
 export const pushEdit = (messageId: string, content: string) => {
+  // 清空撤销栈，因为有新的编辑
+  globalUndoStack = [];
+
   if (!messageEditHistory[messageId]) {
     messageEditHistory[messageId] = [];
   }
+  const latestContent = messageEditHistory[messageId][messageEditHistory[messageId].length - 1];
+  if (latestContent === content) return;
   messageEditHistory[messageId].push(content);
-  // 清空撤销栈，因为有新的编辑
-  globalUndoStack = [];
 };
 
 export const undo = (messageId: string): string | undefined => {
@@ -66,10 +69,6 @@ export const redo = (messageId: string): string | undefined => {
     messageEditHistory[messageId].push(lastUndo);
   }
   return lastUndo;
-};
-
-export const clearUndoStack = () => {
-  globalUndoStack = [];
 };
 
 export const clearEditMessage = (messageId: string) => {

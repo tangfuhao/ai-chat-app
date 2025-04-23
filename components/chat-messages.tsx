@@ -7,7 +7,7 @@ import { Button } from "./ui/button";
 import { MonitorCog, RefreshCw } from "lucide-react";
 import { Avatar } from "@radix-ui/react-avatar";
 import { cn } from "@/lib/utils";
-import { messageEditHistory, pushEdit, undo, redo, initEditHistory, clearUndoStack } from "@/lib/storage";
+import { pushEdit, undo, redo, } from "@/lib/storage";
 
 interface ChatMessagesProps {
   messages: Message[];
@@ -34,7 +34,6 @@ export function ChatMessages({
   const [editContent, setEditContent] = useState("");
 
   const startEditing = (index: number) => {
-    clearUndoStack();
     // 保存编辑到历史记录
     pushEdit(messages[index].id, messages[index].content);
     setEditingIndex(index);
