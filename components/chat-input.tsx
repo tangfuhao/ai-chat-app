@@ -19,6 +19,15 @@ export function ChatInput({
     handleInputChange(e.target.value)
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      if (!isLoading && input.trim()) {
+        handleSubmit()
+      }
+    }
+  }
+
   return (
     <div>
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -26,7 +35,8 @@ export function ChatInput({
           <textarea
             value={input}
             onChange={handleChange}
-            placeholder="Type a message..."
+            onKeyDown={handleKeyDown}
+            placeholder="Type a message...(Shift + Enter for new line)"
             className="w-full p-3 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 resize-none"
             rows={3}
             disabled={isLoading}
