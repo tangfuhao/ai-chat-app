@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import type { Message } from "ai";
-import type { MessageType } from "@/lib/types";
 import ReactMarkdown from "react-markdown";
 import { Button } from "./ui/button";
 import { MonitorCog, RefreshCw } from "lucide-react";
 import { Avatar } from "@radix-ui/react-avatar";
 import { cn } from "@/lib/utils";
+import { messageEditHistory, pushEdit, undo, redo, initEditHistory, clearUndoStack } from "@/lib/storage";
 
 interface ChatMessagesProps {
   messages: Message[];
@@ -34,6 +34,9 @@ export function ChatMessages({
   const [editContent, setEditContent] = useState("");
 
   const startEditing = (index: number) => {
+    clearUndoStack();
+    // 保存编辑到历史记录
+    pushEdit(messages[index].id, messages[index].content);
     setEditingIndex(index);
     setEditContent(messages[index].content);
   };
@@ -42,6 +45,30 @@ export function ChatMessages({
     if (editingIndex !== null) {
       onEditMessage(editingIndex, editContent);
       setEditingIndex(null);
+    }
+  };
+
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "z") {
+      e.preventDefault();
+      if (editingIndex !== null) {
+        const messageId = messages[editingIndex].id;
+        if (e.shiftKey) {
+          // 重做：Command/Ctrl + Shift + Z
+          const redoContent = redo(messageId);
+          if (redoContent) {
+            setEditContent(redoContent);
+          }
+        } else {
+          // 撤销：Command/Ctrl + Z
+          const undoContent = undo(messageId);
+          if (undoContent) {
+            setEditContent(undoContent);
+          }
+        }
+      }
+      return;
     }
   };
 
@@ -99,7 +126,7 @@ export function ChatMessages({
 
                 {message.role === "system" && (
                   <Avatar className="h-10 w-10 bg-red-400 rounded-full flex items-center justify-center ">
-                    <MonitorCog className="text-black"/>
+                    <MonitorCog className="text-black" />
                   </Avatar>
                 )}
               </button>
@@ -110,29 +137,12 @@ export function ChatMessages({
                     <textarea
                       value={editContent}
                       onChange={(e) => setEditContent(e.target.value)}
+                      onKeyDown={handleKeyDown}
                       onBlur={saveEdit}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && e.ctrlKey) {
-                          saveEdit();
-                        }
-                      }}
                       autoFocus
                       className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 min-h-[100px]"
                     />
-                    <div className="mt-2 flex justify-end">
-                      <button
-                        onClick={() => setEditingIndex(null)}
-                        className="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-700 mr-2"
-                      >
-                        取消
-                      </button>
-                      <button
-                        onClick={saveEdit}
-                        className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
-                      >
-                        保存
-                      </button>
-                    </div>
+
                   </div>
                 ) : (
                   <div

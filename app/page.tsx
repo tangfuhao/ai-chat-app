@@ -6,7 +6,7 @@ import { ChatHistory } from "@/components/chat-history"
 import { ChatMessages } from "@/components/chat-messages"
 import { ChatInput } from "@/components/chat-input"
 import { type ChatSession, type AIProvider, DefaultModels, DefaultSettings } from "@/lib/types"
-import { getStoredSessions, storeSession, getStoredSettings } from "@/lib/storage"
+import { getStoredSessions, storeSession, getStoredSettings, clearEditMessage } from "@/lib/storage"
 import { useChat, type Message } from "@/hooks/useChat"
 import { useTheme } from "next-themes"
 
@@ -166,6 +166,8 @@ export default function Home() {
   }
 
   const handleMessageDelete = (index: number) => {
+    const removedMessage = messages[index];
+    clearEditMessage(removedMessage.id)
     const updatedMessages = messages.filter((_, i) => i !== index)
     setMessages(updatedMessages)
 
