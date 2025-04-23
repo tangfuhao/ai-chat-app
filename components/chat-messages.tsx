@@ -12,6 +12,7 @@ interface ChatMessagesProps {
   onChangeRole: (index: number) => void
   onInsertMessage: (index: number) => void
   onMoveMessage: (index: number, direction: "up" | "down") => void
+  onRegenerate: () => void
   isLoading: boolean
 }
 
@@ -22,6 +23,7 @@ export function ChatMessages({
   onChangeRole,
   onInsertMessage,
   onMoveMessage,
+  onRegenerate,
   isLoading,
 }: ChatMessagesProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
@@ -51,6 +53,7 @@ export function ChatMessages({
         return "👤"
     }
   }
+  
 
   return (
     <div className="space-y-6">
@@ -215,6 +218,33 @@ export function ChatMessages({
           </div>
         </div>
       ))}
+
+      {/* 重生成按钮 */}
+      {!isLoading && messages[messages.length - 1]?.role === 'assistant' && (
+        <button
+          onClick={onRegenerate}
+          className="mt-2 ml-14 px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-1"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="lucide lucide-refresh-cw"
+          >
+            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+            <path d="M21 3v5h-5"></path>
+            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+            <path d="M3 21v-5h5"></path>
+          </svg>
+          <span>重新生成</span>
+        </button>
+      )}
 
       {isLoading && (
         <div className="flex items-start space-x-3">
