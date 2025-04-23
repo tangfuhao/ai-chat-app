@@ -101,10 +101,10 @@ export function useChat({
     setError(null)
 
     try {
-      const lastUserMessageIndex = [...messages].reverse().findIndex(m => m.role === 'user')
-      if (lastUserMessageIndex === -1) return
+      const lastMessageIndex = messages.length - 1
+      if (lastMessageIndex === -1) return
 
-      const messagesCopy = messages.slice(0, messages.length - lastUserMessageIndex)
+      const messagesCopy = messages.slice(0, lastMessageIndex)
       
       const response = await fetch('/api/chat', {
         method: 'POST',
