@@ -146,7 +146,7 @@ export function ChatMessages({
                         overflow: "auto",
                         maxHeight: "800px"
                       }}
-                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 min-h-[100px]"
+                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 min-h-[20px]"
                       ref={(textareaRef) => {
                         if (textareaRef) {
                           textareaRef.style.height = "auto"
