@@ -3,6 +3,8 @@
 import { useState } from "react";
 import type { Message } from "ai";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
 import { Button } from "./ui/button";
 import { MonitorCog, RefreshCw } from "lucide-react";
 import { Avatar } from "@radix-ui/react-avatar";
@@ -158,7 +160,14 @@ export function ChatMessages({
                         message.role === "user" && "text-white dark:text-black"
                       )}
                     >
-                      <ReactMarkdown>{message.content}</ReactMarkdown>
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm, remarkBreaks]}
+                        components={{
+                          p: ({ children }) => <p className="whitespace-pre-wrap">{children}</p>
+                        }}
+                      >
+                        {message.content}
+                      </ReactMarkdown>
                     </div>
                   </div>
                 )}
