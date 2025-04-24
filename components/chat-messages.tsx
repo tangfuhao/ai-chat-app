@@ -308,8 +308,8 @@ export function ChatMessages({
         )}
       </div>
       {/* 重生成按钮 */}
-      {!isLoading && messages[messages.length - 1]?.role === "assistant" && (
-        <div className="flex justify-start">
+      {!isLoading && (
+        <div className="mt-4 flex justify-start">
           <Button
             variant="ghost"
             className="text-gray-700 flex items-center gap-2"

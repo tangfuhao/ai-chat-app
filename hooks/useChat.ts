@@ -96,12 +96,13 @@ export function useChat({
 
   const reload = useCallback(async () => {
     if (messages.length === 0) return
-
     setIsLoading(true)
     setError(null)
     const lastMessageIndex = messages.length - 1
     if (lastMessageIndex === -1) return
-    const messagesCopy = messages.slice(0, lastMessageIndex)
+    const lastMessage = messages[lastMessageIndex]
+    const isLastMessageAssistant = lastMessage.role === "assistant"
+    const messagesCopy = isLastMessageAssistant ? messages.slice(0, lastMessageIndex) : messages
     setMessages(messagesCopy)
 
     try {
