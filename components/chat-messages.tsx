@@ -143,7 +143,8 @@ export function ChatMessages({
                       autoFocus
                       style={{
                         height: "auto",
-                        overflow: "hidden",
+                        overflow: "auto",
+                        maxHeight: "800px"
                       }}
                       className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 min-h-[100px]"
                       ref={(textareaRef) => {
@@ -153,7 +154,6 @@ export function ChatMessages({
                         }
                       }}
                     />
-
                   </div>
                 ) : (
                   <div
