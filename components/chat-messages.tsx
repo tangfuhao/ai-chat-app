@@ -141,7 +141,17 @@ export function ChatMessages({
                       onKeyDown={handleKeyDown}
                       onBlur={saveEdit}
                       autoFocus
+                      style={{
+                        height: "auto",
+                        overflow: "hidden",
+                      }}
                       className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 min-h-[100px]"
+                      ref={(textareaRef) => {
+                        if (textareaRef) {
+                          textareaRef.style.height = "auto"
+                          textareaRef.style.height = `${textareaRef.scrollHeight}px`
+                        }
+                      }}
                     />
 
                   </div>
