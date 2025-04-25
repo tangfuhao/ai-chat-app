@@ -1,5 +1,6 @@
 import { OpenAI } from "openai"
 import Anthropic from "@anthropic-ai/sdk"
+import axios from 'axios';
 
 interface Message {
   role: 'user' | 'assistant' | 'system'
@@ -23,6 +24,8 @@ export async function POST(req: Request) {
         return handleOpenAIRequest(apiKey, messages, model, temperature)
       case 'anthropic':
         return handleAnthropicRequest(apiKey, messages, model, temperature)
+      case 'deepseek':
+        return handleDeepSeekRequest(apiKey, messages, model, temperature)
       default:
         return errorResponse(400, "未知的模型提供商")
     }
@@ -56,6 +59,36 @@ async function handleOpenAIRequest(
     }),
     { headers: { 'Content-Type': 'application/json' } }
   )
+}
+
+// DeepSeek处理函数
+async function handleDeepSeekRequest(
+  apiKey: string,
+  messages: Message[],
+  model: string,
+  temperature: number = 0.7
+) {
+  const deepseekClient = axios.create({
+    baseURL: "https://api.deepseek.com",
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const response = await deepseekClient.post('/v1/chat/completions', {
+    model,
+    messages: messages.map(formatOpenAIMessage),
+    temperature,
+  });
+
+  return new Response(
+    JSON.stringify({
+      role: response.data.choices[0].message.role,
+      content: response.data.choices[0].message.content
+    }),
+    { headers: { 'Content-Type': 'application/json' } }
+  );
 }
 
 // Anthropic处理函数
