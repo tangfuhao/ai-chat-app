@@ -1,6 +1,7 @@
 import { OpenAI } from "openai"
 import Anthropic from "@anthropic-ai/sdk"
 import axios from 'axios';
+import { GoogleGenAI } from "@google/genai";
 
 interface Message {
   role: 'user' | 'assistant' | 'system'
@@ -26,6 +27,8 @@ export async function POST(req: Request) {
         return handleAnthropicRequest(apiKey, messages, model, temperature)
       case 'deepseek':
         return handleDeepSeekRequest(apiKey, messages, model, temperature)
+      case 'gemini':
+        return handleGeminiRequest(apiKey, messages, model, temperature)
       default:
         return errorResponse(400, "未知的模型提供商")
     }
@@ -36,6 +39,51 @@ export async function POST(req: Request) {
       error.message || "模型服务调用失败"
     )
   }
+}
+
+// Gemini处理函数
+async function handleGeminiRequest(
+  apiKey: string,
+  messages: Message[],
+  model: string,
+  temperature: number = 0.7
+) {
+  const gemini = new GoogleGenAI({ apiKey: apiKey });
+  // Get the last message and check its role
+  const lastMessage = messages[messages.length - 1];
+  const isLastMessageUser = lastMessage.role === 'user';
+
+  // Convert messages to Gemini chat history format
+  // If last message is not user message, include it in history
+  const historyMessages = isLastMessageUser ? messages.slice(0, -1) : messages;
+  const history = historyMessages.map(msg => ({
+    role: msg.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: msg.content }]
+  }));
+
+  const chat = gemini.chats.create({
+    model: model,
+    history: history,
+  });
+
+  // Only send message if last message is from user
+  const messageToSend = isLastMessageUser ? lastMessage.content : '';
+
+  const response = await chat.sendMessage({
+    message: messageToSend,
+    config: {
+      maxOutputTokens: 500,
+      temperature: temperature,
+    },
+  });
+
+  return new Response(
+    JSON.stringify({
+      role: "assistant",
+      content: response.text
+    }),
+    { headers: { 'Content-Type': 'application/json' } }
+  )
 }
 
 // OpenAI处理函数

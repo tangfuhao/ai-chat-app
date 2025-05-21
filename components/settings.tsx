@@ -120,6 +120,7 @@ export function Settings({
               <option value="anthropic">Claude (3.5 Sonnet V2)</option>
               <option value="grok">Grok</option>
               <option value="deepseek">DeepSeek</option>
+              <option value="gemini">Gemini</option>
             </select>
           </div>
 
