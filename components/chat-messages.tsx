@@ -9,7 +9,8 @@ import { Button } from "./ui/button";
 import { MonitorCog, RefreshCw } from "lucide-react";
 import { Avatar } from "@radix-ui/react-avatar";
 import { cn } from "@/lib/utils";
-import { pushEdit, undo, redo, } from "@/lib/storage";
+import { pushEdit, undo, redo, getStoredSettings } from "@/lib/storage";
+import { toast } from "sonner";
 
 interface ChatMessagesProps {
   messages: Message[];
@@ -49,7 +50,6 @@ export function ChatMessages({
     }
   };
 
-
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if ((e.ctrlKey || e.metaKey) && e.key === "z") {
       e.preventDefault();
@@ -70,6 +70,42 @@ export function ChatMessages({
         }
       }
       return;
+    }
+  };
+
+  const exportExample = async (index: number) => {
+    try {
+      // 获取当前消息及之前的所有消息
+      const messagesToExport = messages.slice(0, index + 1);
+      
+      // 从localStorage读取当前设置
+      const settings = getStoredSettings();
+      
+      const exportData = {
+        model: settings?.model || 'unknown',
+        provider: settings?.provider || 'unknown',
+        timestamp: new Date().toISOString(),
+        messages: messagesToExport.map(msg => ({
+          role: msg.role,
+          content: msg.content
+        }))
+      };
+
+      // 复制到剪贴板
+      const jsonString = JSON.stringify(exportData, null, 2);
+      await navigator.clipboard.writeText(jsonString);
+      
+      // 显示成功提示
+      toast.success("示例已复制到剪贴板", {
+        description: `已导出 ${messagesToExport.length} 条消息`,
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error('复制到剪贴板失败:', error);
+      toast.error("复制失败", {
+        description: "请检查浏览器权限设置",
+        duration: 3000,
+      });
     }
   };
 
@@ -287,6 +323,28 @@ export function ChatMessages({
                 >
                   <path d="M5 12h14"></path>
                   <path d="M12 5v14"></path>
+                </svg>
+              </button>
+              <button
+                onClick={() => exportExample(index)}
+                className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                title="导出示例"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="lucide lucide-download"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7,10 12,15 17,10"></polyline>
+                  <line x1="12" x2="12" y1="15" y2="3"></line>
                 </svg>
               </button>
             </div>
