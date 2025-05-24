@@ -84,6 +84,7 @@ export function ChatMessages({
       const exportData = {
         model: settings?.model || 'unknown',
         provider: settings?.provider || 'unknown',
+        temperature: settings?.temperature || 0.7,
         timestamp: new Date().toISOString(),
         messages: messagesToExport.map(msg => ({
           role: msg.role,
