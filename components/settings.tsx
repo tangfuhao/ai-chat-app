@@ -121,6 +121,7 @@ export function Settings({
               <option value="grok">Grok</option>
               <option value="deepseek">DeepSeek</option>
               <option value="gemini">Gemini</option>
+              <option value="novita">Novita AI</option>
             </select>
           </div>
 

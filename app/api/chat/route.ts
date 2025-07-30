@@ -29,6 +29,8 @@ export async function POST(req: Request) {
         return handleDeepSeekRequest(apiKey, messages, model, temperature)
       case 'gemini':
         return handleGeminiRequest(apiKey, messages, model, temperature)
+      case 'novita':
+        return handleNovitaRequest(apiKey, messages, model, temperature)
       default:
         return errorResponse(400, "未知的模型提供商")
     }
@@ -137,6 +139,34 @@ async function handleDeepSeekRequest(
     }),
     { headers: { 'Content-Type': 'application/json' } }
   );
+}
+
+// Novita处理函数
+async function handleNovitaRequest(
+  apiKey: string,
+  messages: Message[],
+  model: string,
+  temperature: number = 0.7
+) {
+  const novitaClient = new OpenAI({
+    apiKey,
+    baseURL: "https://api.novita.ai/v3/openai"
+  })
+  
+  const response = await novitaClient.chat.completions.create({
+    model,
+    messages: messages.map(formatOpenAIMessage),
+    temperature,
+    max_tokens: 1024,
+  })
+
+  return new Response(
+    JSON.stringify({
+      role: response.choices[0].message.role,
+      content: response.choices[0].message.content
+    }),
+    { headers: { 'Content-Type': 'application/json' } }
+  )
 }
 
 // Anthropic处理函数
