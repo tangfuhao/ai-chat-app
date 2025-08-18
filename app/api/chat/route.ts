@@ -11,7 +11,7 @@ interface Message {
 export const maxDuration = 300
 
 export async function POST(req: Request) {
-  const { messages, apiKey, model, provider, temperature } = await req.json()
+  const { messages, apiKey, model, provider, temperature, maxTokens } = await req.json()
 
   // 参数验证
   if (!apiKey) {
@@ -22,15 +22,15 @@ export async function POST(req: Request) {
     // 根据提供商处理请求
     switch (provider) {
       case 'openai':
-        return handleOpenAIRequest(apiKey, messages, model, temperature)
+        return handleOpenAIRequest(apiKey, messages, model, temperature, maxTokens)
       case 'anthropic':
-        return handleAnthropicRequest(apiKey, messages, model, temperature)
+        return handleAnthropicRequest(apiKey, messages, model, temperature, maxTokens)
       case 'deepseek':
-        return handleDeepSeekRequest(apiKey, messages, model, temperature)
+        return handleDeepSeekRequest(apiKey, messages, model, temperature, maxTokens)
       case 'gemini':
-        return handleGeminiRequest(apiKey, messages, model, temperature)
+        return handleGeminiRequest(apiKey, messages, model, temperature, maxTokens)
       case 'novita':
-        return handleNovitaRequest(apiKey, messages, model, temperature)
+        return handleNovitaRequest(apiKey, messages, model, temperature, maxTokens)
       default:
         return errorResponse(400, "未知的模型提供商")
     }
@@ -48,7 +48,8 @@ async function handleGeminiRequest(
   apiKey: string,
   messages: Message[],
   model: string,
-  temperature: number = 0.7
+  temperature: number = 0.7,
+  maxTokens: number = 1024
 ) {
   const gemini = new GoogleGenAI({ apiKey: apiKey });
   // Get the last message and check its role
@@ -74,7 +75,7 @@ async function handleGeminiRequest(
   const response = await chat.sendMessage({
     message: messageToSend,
     config: {
-      maxOutputTokens: 500,
+      maxOutputTokens: maxTokens,
       temperature: temperature,
     },
   });
@@ -93,13 +94,15 @@ async function handleOpenAIRequest(
   apiKey: string,
   messages: Message[],
   model: string,
-  temperature: number = 0.7
+  temperature: number = 0.7,
+  maxTokens: number = 1024
 ) {
   const openai = new OpenAI({ apiKey })
   const response = await openai.chat.completions.create({
     model,
     messages: messages.map(formatOpenAIMessage),
     temperature,
+    max_tokens: maxTokens,
   })
 
   return new Response(
@@ -116,7 +119,8 @@ async function handleDeepSeekRequest(
   apiKey: string,
   messages: Message[],
   model: string,
-  temperature: number = 0.7
+  temperature: number = 0.7,
+  maxTokens: number = 1024
 ) {
   const deepseekClient = axios.create({
     baseURL: "https://api.deepseek.com",
@@ -130,6 +134,7 @@ async function handleDeepSeekRequest(
     model,
     messages: messages.map(formatOpenAIMessage),
     temperature,
+    max_tokens: maxTokens,
   });
 
   return new Response(
@@ -146,7 +151,8 @@ async function handleNovitaRequest(
   apiKey: string,
   messages: Message[],
   model: string,
-  temperature: number = 0.7
+  temperature: number = 0.7,
+  maxTokens: number = 1024
 ) {
   const novitaClient = new OpenAI({
     apiKey,
@@ -157,7 +163,7 @@ async function handleNovitaRequest(
     model,
     messages: messages.map(formatOpenAIMessage),
     temperature,
-    max_tokens: 1024,
+    max_tokens: maxTokens,
   })
 
   return new Response(
@@ -174,13 +180,14 @@ async function handleAnthropicRequest(
   apiKey: string,
   messages: Message[],
   model: string,
-  temperature: number = 0.7
+  temperature: number = 0.7,
+  maxTokens: number = 1024
 ) {
   const anthropic = new Anthropic({ apiKey })
   const response = await anthropic.messages.create({
     model,
     messages: messages.map(formatClaudeMessage),
-    max_tokens: 4096,
+    max_tokens: maxTokens,
     temperature,
   })
 

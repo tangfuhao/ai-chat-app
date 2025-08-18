@@ -18,6 +18,7 @@ export default function Home() {
   const [selectedModel, setSelectedModel] = useState<string>(DefaultModels["openai"])
   const [selectedProvider, setSelectedProvider] = useState<AIProvider>("openai")
   const [temperature, setTemperature] = useState(DefaultSettings.temperature)
+  const [maxTokens, setMaxTokens] = useState(DefaultSettings.maxTokens)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const { theme, setTheme } = useTheme()
 
@@ -29,6 +30,7 @@ export default function Home() {
       model: selectedModel,
       provider: selectedProvider,
       temperature,
+      maxTokens,
     },
     onFinish: (updatedMessages: Message[]) => {
       if (currentSessionId) {
@@ -66,6 +68,7 @@ export default function Home() {
       setSelectedProvider(settings.provider || "openai")
       setSelectedModel(settings.model || DefaultModels["openai"])
       setTemperature(settings.temperature || DefaultSettings.temperature)
+      setMaxTokens(settings.maxTokens || DefaultSettings.maxTokens)
     }
   }, [])
 
@@ -146,12 +149,13 @@ export default function Home() {
     storeSession("sessions", updatedSessions)
   }
 
-  const saveSettings = (apiKey: string, model: string, provider: AIProvider, temperature: number) => {
+  const saveSettings = (apiKey: string, model: string, provider: AIProvider, temperature: number, maxTokens: number) => {
     setApiKey(apiKey)
     setSelectedModel(model)
     setSelectedProvider(provider)
     setTemperature(temperature)
-    localStorage.setItem("settings", JSON.stringify({ apiKey, model, provider, temperature }))
+    setMaxTokens(maxTokens)
+    localStorage.setItem("settings", JSON.stringify({ apiKey, model, provider, temperature, maxTokens }))
     setIsSettingsOpen(false)
   }
 
@@ -363,6 +367,7 @@ export default function Home() {
           apiKey={apiKey}
           provider={selectedProvider}
           temperature={temperature}
+          maxTokens={maxTokens}
           onSave={saveSettings}
           onClose={() => setIsSettingsOpen(false)}
         />

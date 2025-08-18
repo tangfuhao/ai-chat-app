@@ -14,6 +14,7 @@ interface UseChatOptions {
     model: string
     provider: string
     temperature: number
+    maxTokens: number
   }
   onFinish?: (messages: Message[]) => void
   onError?: (error: Error) => void
@@ -66,7 +67,8 @@ export function useChat({
           apiKey: body.apiKey,
           model: body.model,
           provider: body.provider,
-          temperature: body.temperature
+          temperature: body.temperature,
+          maxTokens: body.maxTokens
         }),
       })
 
@@ -116,7 +118,8 @@ export function useChat({
           apiKey: body?.apiKey,
           model: body?.model,
           provider: body?.provider,
-          temperature: body?.temperature
+          temperature: body?.temperature,
+          maxTokens: body?.maxTokens
         }),
       })
 

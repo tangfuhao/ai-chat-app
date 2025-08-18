@@ -6,13 +6,15 @@ import { DefaultModels, DefaultSettings, type AIProvider } from "@/lib/types"
 interface ProviderSettings {
   apiKey: string;
   customModel: string;
+  maxTokens: number;
 }
 
 interface SettingsProps {
   apiKey: string
   provider: AIProvider
   temperature?: number
-  onSave: (apiKey: string, model: string, provider: AIProvider, temperature: number) => void
+  maxTokens?: number
+  onSave: (apiKey: string, model: string, provider: AIProvider, temperature: number, maxTokens: number) => void
   onClose: () => void
 }
 
@@ -20,6 +22,7 @@ export function Settings({
   apiKey, 
   provider, 
   temperature = DefaultSettings.temperature,
+  maxTokens = DefaultSettings.maxTokens,
   onSave, 
   onClose 
 }: SettingsProps) {
@@ -27,6 +30,7 @@ export function Settings({
   const [selectedProvider, setSelectedProvider] = useState<AIProvider>(provider)
   const [customModelName, setCustomModelName] = useState("")
   const [tempValue, setTempValue] = useState(temperature)
+  const [maxTokensValue, setMaxTokensValue] = useState(maxTokens)
   const [showApiKey, setShowApiKey] = useState(false)
 
   // 从 localStorage 加载提供商特定的设置
@@ -36,12 +40,14 @@ export function Settings({
       const settings: ProviderSettings = JSON.parse(savedSettings)
       setInputApiKey(settings.apiKey || apiKey)
       setCustomModelName(settings.customModel || "")
+      setMaxTokensValue(settings.maxTokens || maxTokens)
     } else {
       // 如果没有保存的设置，重置为默认值
       setInputApiKey(apiKey)
       setCustomModelName("")
+      setMaxTokensValue(maxTokens)
     }
-  }, [selectedProvider, apiKey])
+  }, [selectedProvider, apiKey, maxTokens])
 
   const handleSave = () => {
     const finalModel = customModelName.trim() ? customModelName.trim() : DefaultModels[selectedProvider]
@@ -49,12 +55,13 @@ export function Settings({
     // 保存当前提供商的设置到 localStorage
     const providerSettings: ProviderSettings = {
       apiKey: inputApiKey,
-      customModel: customModelName.trim()
+      customModel: customModelName.trim(),
+      maxTokens: maxTokensValue
     }
     localStorage.setItem(`provider_settings_${selectedProvider}`, JSON.stringify(providerSettings))
     
     // 调用父组件的保存函数
-    onSave(inputApiKey, finalModel, selectedProvider, tempValue)
+    onSave(inputApiKey, finalModel, selectedProvider, tempValue, maxTokensValue)
   }
 
   const handleProviderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -63,7 +70,8 @@ export function Settings({
     // 保存当前提供商的设置
     const currentProviderSettings: ProviderSettings = {
       apiKey: inputApiKey,
-      customModel: customModelName.trim()
+      customModel: customModelName.trim(),
+      maxTokens: maxTokensValue
     }
     localStorage.setItem(`provider_settings_${selectedProvider}`, JSON.stringify(currentProviderSettings))
     
@@ -139,7 +147,7 @@ export function Settings({
             </p>
           </div>
 
-          <div className="mb-6">
+          <div className="mb-4">
             <label className="block text-sm font-medium mb-1">Temperature ({tempValue})</label>
             <input
               type="range"
@@ -152,6 +160,42 @@ export function Settings({
             />
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
               调整响应的随机性：0 表示更确定的响应，2 表示更具创造性的响应
+            </p>
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-1">最大Token數</label>
+            <input
+              type="number"
+              min="1"
+              value={maxTokensValue}
+              onChange={(e) => {
+                const value = e.target.value;
+                // 如果輸入為空，暫時設為默認值
+                if (value === '') {
+                  setMaxTokensValue(1024);
+                  return;
+                }
+                const numValue = parseInt(value);
+                // 只要是有效數字且大於等於1就接受
+                if (!isNaN(numValue) && numValue >= 1) {
+                  setMaxTokensValue(numValue);
+                } else if (!isNaN(numValue) && numValue < 1) {
+                  setMaxTokensValue(1);
+                }
+              }}
+              onBlur={(e) => {
+                // 失去焦點時確保值有效（最小值為1）
+                const value = parseInt(e.target.value);
+                if (isNaN(value) || value < 1) {
+                  setMaxTokensValue(1024);
+                }
+              }}
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700"
+              placeholder="1024"
+            />
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              控制AI回应的最大长度(模型限制),一般1-4096 tokens(1 token ≈ 0.75个中文字符)
             </p>
           </div>
 
