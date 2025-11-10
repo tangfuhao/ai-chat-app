@@ -1,6 +1,6 @@
 /**
- * 模型配置系統 - 配置驅動的參數管理
- * 每個模型可以定義自己支援的參數類型和約束
+ * 模型配置系统 - 配置驱动的参数管理
+ * 每个模型可以定义自己支持的参数类型和约束
  */
 
 export type ParamType = 'slider' | 'select' | 'number' | 'toggle'
@@ -10,18 +10,18 @@ export interface ParamConfig {
   label: string
   description?: string
   defaultValue: any
-  // slider 專用
+  // slider 专用
   min?: number
   max?: number
   step?: number
-  // select 專用
+  // select 专用
   options?: Array<{ value: string; label: string }>
-  // number 專用
+  // number 专用
   minValue?: number
   maxValue?: number
-  // 是否在該模型中禁用
+  // 是否在该模型中禁用
   disabled?: boolean
-  // 固定值（如果設置，UI 顯示但不可編輯）
+  // 固定值（如果设置，UI 显示但不可编辑）
   fixedValue?: any
   // 是否必填
   required?: boolean
@@ -29,29 +29,29 @@ export interface ParamConfig {
 
 export interface ModelConfigDescriptor {
   provider: string
-  models: string[]  // 支援的模型列表
+  models: string[]  // 支持的模型列表
   displayName: string
   apiKeyLabel?: string
-  // 定義該提供商/模型支援的所有參數
+  // 定义该提供商/模型支持的所有参数
   parameters: {
     temperature?: ParamConfig
     maxTokens?: ParamConfig
-    // GPT-5 專屬參數
+    // GPT-5 专属参数
     reasoning_effort?: ParamConfig
     verbosity?: ParamConfig
-    // 未來可擴展更多參數
+    // 未来可扩展更多参数
     topP?: ParamConfig
     topK?: ParamConfig
     frequencyPenalty?: ParamConfig
     presencePenalty?: ParamConfig
     [key: string]: ParamConfig | undefined
   }
-  // 自定義參數轉換邏輯
+  // 自定义参数转换逻辑
   transformParams?: (params: Record<string, any>) => Record<string, any>
 }
 
 /**
- * 所有模型的配置定義
+ * 所有模型的配置定义
  */
 export const MODEL_CONFIGS: Record<string, ModelConfigDescriptor> = {
   // ===== OpenAI GPT-4/3.5 系列 =====
@@ -63,7 +63,7 @@ export const MODEL_CONFIGS: Record<string, ModelConfigDescriptor> = {
       temperature: {
         type: 'slider',
         label: 'Temperature',
-        description: '調整響應的隨機性：0 表示更確定的響應，2 表示更具創造性的響應',
+        description: '调整响应的随机性：0 表示更确定的响应，2 表示更具创造性的响应',
         defaultValue: 0.7,
         min: 0,
         max: 2,
@@ -71,8 +71,8 @@ export const MODEL_CONFIGS: Record<string, ModelConfigDescriptor> = {
       },
       maxTokens: {
         type: 'number',
-        label: '最大 Token 數',
-        description: '控制 AI 回應的最大長度（1 token ≈ 0.75 個中文字符）',
+        label: '最大 Token 数',
+        description: '控制 AI 回应的最大长度（1 token ≈ 0.75 个中文字符）',
         defaultValue: 1024,
         minValue: 1,
         maxValue: 4096
@@ -93,7 +93,7 @@ export const MODEL_CONFIGS: Record<string, ModelConfigDescriptor> = {
       temperature: {
         type: 'slider',
         label: 'Temperature',
-        description: 'GPT-5 僅支援固定值 1 或留空',
+        description: 'GPT-5 仅支持固定值 1 或留空',
         defaultValue: 1,
         min: 1,
         max: 1,
@@ -103,8 +103,8 @@ export const MODEL_CONFIGS: Record<string, ModelConfigDescriptor> = {
       },
       maxTokens: {
         type: 'number',
-        label: '最大 Token 數',
-        description: '控制 AI 回應的最大長度（1 token ≈ 0.75 個中文字符）',
+        label: '最大 Token 数',
+        description: '控制 AI 回应的最大长度（1 token ≈ 0.75 个中文字符）',
         defaultValue: 4096,
         minValue: 1,
         maxValue: 16384
@@ -112,29 +112,29 @@ export const MODEL_CONFIGS: Record<string, ModelConfigDescriptor> = {
       reasoning_effort: {
         type: 'select',
         label: 'Reasoning Effort',
-        description: '控制推理耗時：minimal（最快）、low、medium、high（質量最高）',
+        description: '控制推理耗时：minimal（最快）、low、medium、high（质量最高）',
         defaultValue: 'medium',
         options: [
           { value: 'minimal', label: 'Minimal - 最快速度' },
           { value: 'low', label: 'Low - 低推理' },
           { value: 'medium', label: 'Medium - 中等推理' },
-          { value: 'high', label: 'High - 高質量推理' }
+          { value: 'high', label: 'High - 高质量推理' }
         ]
       },
       verbosity: {
         type: 'select',
         label: 'Verbosity',
-        description: '控制回答長度：low（簡短）、medium（適中）、high（詳盡）',
+        description: '控制回答长度：low（简短）、medium（适中）、high（详尽）',
         defaultValue: 'medium',
         options: [
-          { value: 'low', label: 'Low - 簡短扼要' },
-          { value: 'medium', label: 'Medium - 適中' },
-          { value: 'high', label: 'High - 詳盡全面' }
+          { value: 'low', label: 'Low - 简短扼要' },
+          { value: 'medium', label: 'Medium - 适中' },
+          { value: 'high', label: 'High - 详尽全面' }
         ]
       }
     },
     transformParams: (params) => {
-      // gpt-5-chat-latest 不支援 reasoning_effort 和 verbosity
+      // gpt-5-chat-latest 不支持 reasoning_effort 和 verbosity
       if (params.model === 'gpt-5-chat-latest') {
         const { reasoning_effort, verbosity, ...rest } = params
         return rest
@@ -152,7 +152,7 @@ export const MODEL_CONFIGS: Record<string, ModelConfigDescriptor> = {
       temperature: {
         type: 'slider',
         label: 'Temperature',
-        description: '調整響應的隨機性：0 表示更確定的響應，1 表示更具創造性的響應',
+        description: '调整响应的随机性：0 表示更确定的响应，1 表示更具创造性的响应',
         defaultValue: 0.7,
         min: 0,
         max: 1,
@@ -160,8 +160,8 @@ export const MODEL_CONFIGS: Record<string, ModelConfigDescriptor> = {
       },
       maxTokens: {
         type: 'number',
-        label: '最大 Token 數',
-        description: '控制 AI 回應的最大長度',
+        label: '最大 Token 数',
+        description: '控制 AI 回应的最大长度',
         defaultValue: 4096,
         minValue: 1,
         maxValue: 8192
@@ -178,7 +178,7 @@ export const MODEL_CONFIGS: Record<string, ModelConfigDescriptor> = {
       temperature: {
         type: 'slider',
         label: 'Temperature',
-        description: '調整響應的隨機性',
+        description: '调整响应的随机性',
         defaultValue: 0.7,
         min: 0,
         max: 2,
@@ -186,8 +186,8 @@ export const MODEL_CONFIGS: Record<string, ModelConfigDescriptor> = {
       },
       maxTokens: {
         type: 'number',
-        label: '最大 Token 數',
-        description: '控制 AI 回應的最大長度',
+        label: '最大 Token 数',
+        description: '控制 AI 回应的最大长度',
         defaultValue: 2048,
         minValue: 1,
         maxValue: 4096
@@ -204,7 +204,7 @@ export const MODEL_CONFIGS: Record<string, ModelConfigDescriptor> = {
       temperature: {
         type: 'slider',
         label: 'Temperature',
-        description: '調整響應的隨機性',
+        description: '调整响应的随机性',
         defaultValue: 0.7,
         min: 0,
         max: 2,
@@ -212,8 +212,8 @@ export const MODEL_CONFIGS: Record<string, ModelConfigDescriptor> = {
       },
       maxTokens: {
         type: 'number',
-        label: '最大 Token 數',
-        description: '控制 AI 回應的最大長度',
+        label: '最大 Token 数',
+        description: '控制 AI 回应的最大长度',
         defaultValue: 2048,
         minValue: 1,
         maxValue: 8192
@@ -230,7 +230,7 @@ export const MODEL_CONFIGS: Record<string, ModelConfigDescriptor> = {
       temperature: {
         type: 'slider',
         label: 'Temperature',
-        description: '調整響應的隨機性',
+        description: '调整响应的随机性',
         defaultValue: 0.7,
         min: 0,
         max: 2,
@@ -238,8 +238,8 @@ export const MODEL_CONFIGS: Record<string, ModelConfigDescriptor> = {
       },
       maxTokens: {
         type: 'number',
-        label: '最大 Token 數',
-        description: '控制 AI 回應的最大長度',
+        label: '最大 Token 数',
+        description: '控制 AI 回应的最大长度',
         defaultValue: 1024,
         minValue: 1,
         maxValue: 4096
@@ -266,14 +266,14 @@ export function getModelConfig(provider: string): ModelConfigDescriptor | undefi
 export function getModelConfigByModelName(provider: string, modelName: string): ModelConfigDescriptor {
   // 檢查是否是 GPT-5 系列
   if (provider === 'openai' && (
-    modelName.includes('gpt-5') || 
-    modelName === 'gpt-5-preview' || 
+    modelName.includes('gpt-5') ||
+    modelName === 'gpt-5-preview' ||
     modelName === 'gpt-5-mini' ||
     modelName === 'gpt-5-chat-latest'
   )) {
     return MODEL_CONFIGS['openai-gpt5']
   }
-  
+
   return MODEL_CONFIGS[provider] || MODEL_CONFIGS['openai']
 }
 
@@ -282,13 +282,13 @@ export function getModelConfigByModelName(provider: string, modelName: string): 
  */
 export function getDefaultParams(config: ModelConfigDescriptor): Record<string, any> {
   const defaults: Record<string, any> = {}
-  
+
   Object.entries(config.parameters).forEach(([key, paramConfig]) => {
     if (paramConfig) {
       defaults[key] = paramConfig.fixedValue ?? paramConfig.defaultValue
     }
   })
-  
+
   return defaults
 }
 
@@ -300,24 +300,24 @@ export function validateAndNormalizeParams(
   params: Record<string, any>
 ): Record<string, any> {
   const normalized: Record<string, any> = {}
-  
+
   Object.entries(config.parameters).forEach(([key, paramConfig]) => {
     if (!paramConfig) return
-    
+
     const value = params[key]
-    
+
     // 如果有固定值，使用固定值
     if (paramConfig.fixedValue !== undefined) {
       normalized[key] = paramConfig.fixedValue
       return
     }
-    
+
     // 如果沒有提供值，使用默認值
     if (value === undefined || value === null) {
       normalized[key] = paramConfig.defaultValue
       return
     }
-    
+
     // 根據類型驗證和規範化
     switch (paramConfig.type) {
       case 'slider':
@@ -330,7 +330,7 @@ export function validateAndNormalizeParams(
           normalized[key] = numVal
         }
         break
-        
+
       case 'number':
         const num = Number(value)
         if (paramConfig.minValue !== undefined && num < paramConfig.minValue) {
@@ -341,22 +341,22 @@ export function validateAndNormalizeParams(
           normalized[key] = num
         }
         break
-        
+
       case 'select':
         // 驗證值是否在選項中
         const validOptions = paramConfig.options?.map(o => o.value) || []
         normalized[key] = validOptions.includes(value) ? value : paramConfig.defaultValue
         break
-        
+
       case 'toggle':
         normalized[key] = Boolean(value)
         break
-        
+
       default:
         normalized[key] = value
     }
   })
-  
+
   // 應用自定義轉換
   return config.transformParams ? config.transformParams(normalized) : normalized
 }

@@ -48,7 +48,7 @@ export function Settings({
   const [currentConfig, setCurrentConfig] =
     useState<ModelConfigDescriptor | null>(null);
 
-  // 根據當前選擇的提供商和模型，獲取配置
+  // 根据当前选择的提供商和模型，获取配置
   useEffect(() => {
     const modelName =
       customModelName || getDefaultModelForProvider(selectedProvider);
@@ -56,7 +56,7 @@ export function Settings({
     console.log("Loaded config for", selectedProvider, modelName, config);
     setCurrentConfig(config);
 
-    // 從 localStorage 加載提供商特定的設置
+    // 从 localStorage 加载提供商特定的设置
     const savedSettings = localStorage.getItem(
       `provider_settings_${selectedProvider}`
     );
@@ -65,18 +65,18 @@ export function Settings({
       setInputApiKey(settings.apiKey || apiKey);
       setCustomModelName(settings.customModel || "");
 
-      // 合併保存的參數和默認參數
+      // 合并保存的参数和默认参数
       const defaultParams = getDefaultParams(config);
       setCurrentParams({ ...defaultParams, ...settings.parameters });
     } else {
-      // 如果沒有保存的設置，使用配置的默認值
+      // 如果没有保存的设置，使用配置的默认值
       setInputApiKey(apiKey);
       setCustomModelName("");
       setCurrentParams(getDefaultParams(config));
     }
   }, [selectedProvider, apiKey]);
 
-  // 當自定義模型名稱改變時，更新配置（用於 GPT-5 檢測）
+  // 当自定义模型名称改变时，更新配置（用于 GPT-5 检测）
   useEffect(() => {
     if (customModelName.trim()) {
       const modelName = customModelName.trim();
@@ -87,10 +87,10 @@ export function Settings({
       console.log("Loaded config for2", selectedProvider, modelName, config);
       setCurrentConfig(config);
 
-      // 如果配置改變了，重置參數為新配置的默認值
+      // 如果配置改变了，重置参数为新配置的默认值
       const newDefaults = getDefaultParams(config);
       setCurrentParams((prev) => {
-        // 保留仍然存在的參數值，新參數使用默認值
+        // 保留仍然存在的参数值，新参数使用默认值
         const merged: Record<string, any> = { ...newDefaults };
         Object.keys(prev).forEach((key) => {
           if (config.parameters[key]) {
@@ -106,7 +106,7 @@ export function Settings({
     const finalModel =
       customModelName.trim() || getDefaultModelForProvider(selectedProvider);
 
-    // 保存當前提供商的設置到 localStorage
+    // 保存当前提供商的设置到 localStorage
     const providerSettings: ProviderSettings = {
       apiKey: inputApiKey,
       customModel: customModelName.trim(),
@@ -117,14 +117,14 @@ export function Settings({
       JSON.stringify(providerSettings)
     );
 
-    // 調用父組件的保存函數
+    // 调用父组件的保存函数
     onSave(inputApiKey, finalModel, selectedProvider, currentParams);
   };
 
   const handleProviderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newProvider = e.target.value as AIProvider;
 
-    // 保存當前提供商的設置
+    // 保存当前提供商的设置
     const currentProviderSettings: ProviderSettings = {
       apiKey: inputApiKey,
       customModel: customModelName.trim(),
@@ -135,7 +135,7 @@ export function Settings({
       JSON.stringify(currentProviderSettings)
     );
 
-    // 更新選中的提供商
+    // 更新选中的提供商
     setSelectedProvider(newProvider);
   };
 
@@ -146,23 +146,23 @@ export function Settings({
     }));
   };
 
-  // 獲取提供商的默認模型
+  // 获取提供商的默认模型
   function getDefaultModelForProvider(provider: AIProvider): string {
     const config = MODEL_CONFIGS[provider];
     return config?.models[0] || "";
   }
 
   if (!currentConfig) {
-    return null; // 配置加載中
+    return null; // 配置加载中
   }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="p-6">
-          <h2 className="text-xl font-semibold mb-4">設置</h2>
+          <h2 className="text-xl font-semibold mb-4">设置</h2>
 
-          {/* API Key 輸入 */}
+          {/* API Key 输入 */}
           <div className="mb-4">
             <label className="block text-sm font-medium mb-1">
               {currentConfig.apiKeyLabel || "API Key"}
@@ -173,7 +173,7 @@ export function Settings({
                 value={inputApiKey}
                 onChange={(e) => setInputApiKey(e.target.value)}
                 className="w-full p-2 pr-10 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700"
-                placeholder="輸入您的 API Key"
+                placeholder="输入您的 API Key"
               />
               <button
                 type="button"
@@ -233,16 +233,16 @@ export function Settings({
             </select>
           </div>
 
-          {/* 自定義模型名稱 */}
+          {/* 自定义模型名称 */}
           <div className="mb-4">
             <label className="block text-sm font-medium mb-1">
-              自定義模型名稱 (可選)
+              自定义模型名称 (可选)
             </label>
             <input
               type="text"
               value={customModelName}
               onChange={(e) => setCustomModelName(e.target.value)}
-              placeholder={`預設：${currentConfig.models[0]}`}
+              placeholder={`预设：${currentConfig.models[0]}`}
               className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700"
             />
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -250,10 +250,10 @@ export function Settings({
             </p>
           </div>
 
-          {/* 動態參數區域 */}
+          {/* 动态参数区域 */}
           <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
             <h3 className="text-sm font-semibold mb-3 text-gray-700 dark:text-gray-300">
-              模型參數
+              模型参数
             </h3>
 
             {Object.entries(currentConfig.parameters).map(

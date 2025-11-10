@@ -2,7 +2,7 @@ export type MessageType = "user" | "assistant" | "system"
 
 export type AIProvider = 'openai' | 'openai-gpt5' | 'anthropic' | 'deepseek' | 'grok' | 'gemini' | 'novita'
 
-// 提供商默認模型名稱
+// 提供商默认模型名称
 export const DefaultModels: Record<string, string> = {
   'openai': 'gpt-4o',
   'openai-gpt5': 'gpt-5-preview',
@@ -20,16 +20,16 @@ export interface ChatSession {
   lastUpdated: string
 }
 
-// 支持動態參數的設置接口
+// 支持动态参数的设置接口
 export interface Settings {
   apiKey: string
   model: string
   provider: AIProvider
-  // 動態參數對象，可以包含任何模型特定的參數
+  // 动态参数对象，可以包含任何模型特定的参数
   parameters: Record<string, any>
 }
 
-// 默認設置
+// 默认设置
 export const DefaultSettings: Settings = {
   apiKey: '',
   model: DefaultModels.openai,
