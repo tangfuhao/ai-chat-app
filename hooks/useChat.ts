@@ -13,8 +13,7 @@ interface UseChatOptions {
     apiKey: string
     model: string
     provider: string
-    temperature: number
-    maxTokens: number
+    parameters?: Record<string, any>
   }
   onFinish?: (messages: Message[]) => void
   onError?: (error: Error) => void
@@ -67,8 +66,7 @@ export function useChat({
           apiKey: body.apiKey,
           model: body.model,
           provider: body.provider,
-          temperature: body.temperature,
-          maxTokens: body.maxTokens
+          parameters: body.parameters
         }),
       })
 
@@ -118,8 +116,7 @@ export function useChat({
           apiKey: body?.apiKey,
           model: body?.model,
           provider: body?.provider,
-          temperature: body?.temperature,
-          maxTokens: body?.maxTokens
+          parameters: body?.parameters
         }),
       })
 

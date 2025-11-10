@@ -39,7 +39,7 @@ export function Settings({
   useEffect(() => {
     const modelName = customModelName || getDefaultModelForProvider(selectedProvider)
     const config = getModelConfigByModelName(
-      selectedProvider === 'openai-gpt5' ? 'openai' : selectedProvider,
+      selectedProvider,
       modelName
     )
     setCurrentConfig(config)
