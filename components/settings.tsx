@@ -81,9 +81,10 @@ export function Settings({
     if (customModelName.trim()) {
       const modelName = customModelName.trim();
       const config = getModelConfigByModelName(
-        selectedProvider === "openai-gpt5" ? "openai" : selectedProvider,
+        selectedProvider,
         modelName
       );
+      console.log("Loaded config for2", selectedProvider, modelName, config);
       setCurrentConfig(config);
 
       // 如果配置改變了，重置參數為新配置的默認值
