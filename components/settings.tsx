@@ -1,99 +1,157 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { DefaultModels, DefaultSettings, type AIProvider } from "@/lib/types"
+import { type AIProvider } from "@/lib/types"
+import { MODEL_CONFIGS, getModelConfigByModelName, getDefaultParams, type ModelConfigDescriptor } from "@/lib/model-config"
+import { DynamicParamInput } from "./dynamic-param-input"
 
 interface ProviderSettings {
-  apiKey: string;
-  customModel: string;
-  maxTokens: number;
+  apiKey: string
+  customModel: string
+  parameters: Record<string, any>
 }
 
 interface SettingsProps {
   apiKey: string
   provider: AIProvider
-  temperature?: number
-  maxTokens?: number
-  onSave: (apiKey: string, model: string, provider: AIProvider, temperature: number, maxTokens: number) => void
+  model?: string
+  parameters?: Record<string, any>
+  onSave: (apiKey: string, model: string, provider: AIProvider, parameters: Record<string, any>) => void
   onClose: () => void
 }
 
 export function Settings({ 
   apiKey, 
-  provider, 
-  temperature = DefaultSettings.temperature,
-  maxTokens = DefaultSettings.maxTokens,
+  provider,
+  model = '',
+  parameters = {},
   onSave, 
   onClose 
 }: SettingsProps) {
   const [inputApiKey, setInputApiKey] = useState(apiKey)
   const [selectedProvider, setSelectedProvider] = useState<AIProvider>(provider)
-  const [customModelName, setCustomModelName] = useState("")
-  const [tempValue, setTempValue] = useState(temperature)
-  const [maxTokensValue, setMaxTokensValue] = useState(maxTokens)
+  const [customModelName, setCustomModelName] = useState(model)
+  const [currentParams, setCurrentParams] = useState<Record<string, any>>(parameters)
   const [showApiKey, setShowApiKey] = useState(false)
+  const [currentConfig, setCurrentConfig] = useState<ModelConfigDescriptor | null>(null)
 
-  // 从 localStorage 加载提供商特定的设置
+  // 根據當前選擇的提供商和模型，獲取配置
   useEffect(() => {
+    const modelName = customModelName || getDefaultModelForProvider(selectedProvider)
+    const config = getModelConfigByModelName(
+      selectedProvider === 'openai-gpt5' ? 'openai' : selectedProvider,
+      modelName
+    )
+    setCurrentConfig(config)
+
+    // 從 localStorage 加載提供商特定的設置
     const savedSettings = localStorage.getItem(`provider_settings_${selectedProvider}`)
     if (savedSettings) {
       const settings: ProviderSettings = JSON.parse(savedSettings)
       setInputApiKey(settings.apiKey || apiKey)
-      setCustomModelName(settings.customModel || "")
-      setMaxTokensValue(settings.maxTokens || maxTokens)
+      setCustomModelName(settings.customModel || '')
+      
+      // 合併保存的參數和默認參數
+      const defaultParams = getDefaultParams(config)
+      setCurrentParams({ ...defaultParams, ...settings.parameters })
     } else {
-      // 如果没有保存的设置，重置为默认值
+      // 如果沒有保存的設置，使用配置的默認值
       setInputApiKey(apiKey)
-      setCustomModelName("")
-      setMaxTokensValue(maxTokens)
+      setCustomModelName('')
+      setCurrentParams(getDefaultParams(config))
     }
-  }, [selectedProvider, apiKey, maxTokens])
+  }, [selectedProvider, apiKey])
+
+  // 當自定義模型名稱改變時，更新配置（用於 GPT-5 檢測）
+  useEffect(() => {
+    if (customModelName.trim()) {
+      const modelName = customModelName.trim()
+      const config = getModelConfigByModelName(
+        selectedProvider === 'openai-gpt5' ? 'openai' : selectedProvider,
+        modelName
+      )
+      setCurrentConfig(config)
+      
+      // 如果配置改變了，重置參數為新配置的默認值
+      const newDefaults = getDefaultParams(config)
+      setCurrentParams(prev => {
+        // 保留仍然存在的參數值，新參數使用默認值
+        const merged: Record<string, any> = { ...newDefaults }
+        Object.keys(prev).forEach(key => {
+          if (config.parameters[key]) {
+            merged[key] = prev[key]
+          }
+        })
+        return merged
+      })
+    }
+  }, [customModelName, selectedProvider])
 
   const handleSave = () => {
-    const finalModel = customModelName.trim() ? customModelName.trim() : DefaultModels[selectedProvider]
+    const finalModel = customModelName.trim() || getDefaultModelForProvider(selectedProvider)
     
-    // 保存当前提供商的设置到 localStorage
+    // 保存當前提供商的設置到 localStorage
     const providerSettings: ProviderSettings = {
       apiKey: inputApiKey,
       customModel: customModelName.trim(),
-      maxTokens: maxTokensValue
+      parameters: currentParams
     }
     localStorage.setItem(`provider_settings_${selectedProvider}`, JSON.stringify(providerSettings))
     
-    // 调用父组件的保存函数
-    onSave(inputApiKey, finalModel, selectedProvider, tempValue, maxTokensValue)
+    // 調用父組件的保存函數
+    onSave(inputApiKey, finalModel, selectedProvider, currentParams)
   }
 
   const handleProviderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newProvider = e.target.value as AIProvider
     
-    // 保存当前提供商的设置
+    // 保存當前提供商的設置
     const currentProviderSettings: ProviderSettings = {
       apiKey: inputApiKey,
       customModel: customModelName.trim(),
-      maxTokens: maxTokensValue
+      parameters: currentParams
     }
     localStorage.setItem(`provider_settings_${selectedProvider}`, JSON.stringify(currentProviderSettings))
     
-    // 更新选中的提供商
+    // 更新選中的提供商
     setSelectedProvider(newProvider)
+  }
+
+  const handleParamChange = (paramKey: string, value: any) => {
+    setCurrentParams(prev => ({
+      ...prev,
+      [paramKey]: value
+    }))
+  }
+
+  // 獲取提供商的默認模型
+  function getDefaultModelForProvider(provider: AIProvider): string {
+    const config = MODEL_CONFIGS[provider]
+    return config?.models[0] || ''
+  }
+
+  if (!currentConfig) {
+    return null // 配置加載中
   }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-md">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="p-6">
-          <h2 className="text-xl font-semibold mb-4">设置</h2>
+          <h2 className="text-xl font-semibold mb-4">設置</h2>
 
+          {/* API Key 輸入 */}
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">API Key</label>
+            <label className="block text-sm font-medium mb-1">
+              {currentConfig.apiKeyLabel || 'API Key'}
+            </label>
             <div className="relative">
               <input
                 type={showApiKey ? "text" : "password"}
                 value={inputApiKey}
                 onChange={(e) => setInputApiKey(e.target.value)}
                 className="w-full p-2 pr-10 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700"
-                placeholder="输入您的 API Key"
+                placeholder="輸入您的 API Key"
               />
               <button
                 type="button"
@@ -117,96 +175,72 @@ export function Settings({
             </div>
           </div>
 
+          {/* 提供商選擇 */}
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">模型</label>
+            <label className="block text-sm font-medium mb-1">AI 提供商</label>
             <select
               value={selectedProvider}
               onChange={handleProviderChange}
               className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700"
             >
-              <option value="openai">ChatGPT (GPT-4o)</option>
-              <option value="anthropic">Claude (3.5 Sonnet V2)</option>
-              <option value="grok">Grok</option>
-              <option value="deepseek">DeepSeek</option>
-              <option value="gemini">Gemini</option>
-              <option value="novita">Novita AI</option>
+              {Object.entries(MODEL_CONFIGS).map(([key, config]) => (
+                <option key={key} value={key}>
+                  {config.displayName}
+                </option>
+              ))}
             </select>
           </div>
 
+          {/* 自定義模型名稱 */}
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">自定义模型名称 (可选)</label>
+            <label className="block text-sm font-medium mb-1">
+              自定義模型名稱 (可選)
+            </label>
             <input
               type="text"
               value={customModelName}
               onChange={(e) => setCustomModelName(e.target.value)}
-              placeholder={`例如：claude-3-5-sonnet-20241022`}
+              placeholder={`預設：${currentConfig.models[0]}`}
               className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700"
             />
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              如需使用特定版本模型，可在此处输入完整模型名称
+              可用模型：{currentConfig.models.join(', ')}
             </p>
           </div>
 
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Temperature ({tempValue})</label>
-            <input
-              type="range"
-              min="0"
-              max="2"
-              step="0.1"
-              value={tempValue}
-              onChange={(e) => setTempValue(parseFloat(e.target.value))}
-              className="w-full"
-            />
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              调整响应的随机性：0 表示更确定的响应，2 表示更具创造性的响应
-            </p>
+          {/* 動態參數區域 */}
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+            <h3 className="text-sm font-semibold mb-3 text-gray-700 dark:text-gray-300">
+              模型參數
+            </h3>
+            
+            {Object.entries(currentConfig.parameters).map(([paramKey, paramConfig]) => {
+              if (!paramConfig) return null
+              
+              return (
+                <DynamicParamInput
+                  key={paramKey}
+                  paramKey={paramKey}
+                  config={paramConfig}
+                  value={currentParams[paramKey] ?? paramConfig.defaultValue}
+                  onChange={(value) => handleParamChange(paramKey, value)}
+                />
+              )
+            })}
           </div>
 
-          <div className="mb-6">
-            <label className="block text-sm font-medium mb-1">最大Token數</label>
-            <input
-              type="number"
-              min="1"
-              value={maxTokensValue}
-              onChange={(e) => {
-                const value = e.target.value;
-                // 如果輸入為空，暫時設為默認值
-                if (value === '') {
-                  setMaxTokensValue(1024);
-                  return;
-                }
-                const numValue = parseInt(value);
-                // 只要是有效數字且大於等於1就接受
-                if (!isNaN(numValue) && numValue >= 1) {
-                  setMaxTokensValue(numValue);
-                } else if (!isNaN(numValue) && numValue < 1) {
-                  setMaxTokensValue(1);
-                }
-              }}
-              onBlur={(e) => {
-                // 失去焦點時確保值有效（最小值為1）
-                const value = parseInt(e.target.value);
-                if (isNaN(value) || value < 1) {
-                  setMaxTokensValue(1024);
-                }
-              }}
-              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700"
-              placeholder="1024"
-            />
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              控制AI回应的最大长度(模型限制),一般1-4096 tokens(1 token ≈ 0.75个中文字符)
-            </p>
-          </div>
-
-          <div className="flex justify-end space-x-2">
+          {/* 操作按鈕 */}
+          <div className="flex justify-end space-x-2 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
             <button
               onClick={onClose}
               className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               取消
             </button>
-            <button onClick={handleSave} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+            <button 
+              onClick={handleSave} 
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
               保存
             </button>
           </div>

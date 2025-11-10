@@ -1,0 +1,56 @@
+{
+    // 調試相關設置
+    "debug.console.fontSize": 14,
+    "debug.console.lineHeight": 20,
+    "debug.inlineValues": "on",
+    "debug.showBreakpointsInOverviewRuler": true,
+    "debug.allowBreakpointsEverywhere": true,
+    // TypeScript 設置
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    "typescript.preferences.importModuleSpecifier": "non-relative",
+    "typescript.suggest.autoImports": true,
+    // 編輯器設置
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit"
+    },
+    // 文件關聯
+    "files.associations": {
+        "*.css": "tailwindcss"
+    },
+    // Tailwind CSS IntelliSense
+    "tailwindCSS.experimental.classRegex": [
+        [
+            "cva\\(([^)]*)\\)",
+            "[\"'`]([^\"'`]*).*?[\"'`]"
+        ],
+        [
+            "cn\\(([^)]*)\\)",
+            "[\"'`]([^\"'`]*).*?[\"'`]"
+        ]
+    ],
+    // 排除不需要監視的文件
+    "files.watcherExclude": {
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/node_modules/**": true,
+        "**/.next/**": true,
+        "**/.cache/**": true
+    },
+    // 搜索排除
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/.next": true,
+        "**/dist": true,
+        "**/.cache": true,
+        "**/build": true
+    },
+    // 終端設置
+    "terminal.integrated.defaultProfile.osx": "zsh",
+    "terminal.integrated.fontSize": 14,
+    // 其他優化
+    "emmet.includeLanguages": {
+        "typescript": "html",
+        "typescriptreact": "html"
+    }
+}

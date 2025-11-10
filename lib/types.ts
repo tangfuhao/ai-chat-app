@@ -1,18 +1,17 @@
 export type MessageType = "user" | "assistant" | "system"
 
+export type AIProvider = 'openai' | 'openai-gpt5' | 'anthropic' | 'deepseek' | 'grok' | 'gemini' | 'novita'
 
-export type AIProvider = 'openai' | 'anthropic' | 'deepseek' | 'grok' | 'novita'
-
-//provide 默认模型名称
-export const DefaultModels = {
-  openai: 'gpt-3.5-turbo',
-  anthropic: 'claude-3-5-sonnet-latest',
-  deepseek: 'deepseek-chat',
-  grok: 'grok-1',
-  gemini: 'gemini-2.0-flash',
-  novita: 'pa/cd-3-5-st-20241022'
+// 提供商默認模型名稱
+export const DefaultModels: Record<string, string> = {
+  'openai': 'gpt-4o',
+  'openai-gpt5': 'gpt-5-preview',
+  'anthropic': 'claude-3-5-sonnet-latest',
+  'deepseek': 'deepseek-chat',
+  'grok': 'grok-1',
+  'gemini': 'gemini-2.0-flash',
+  'novita': 'pa/cd-3-5-st-20241022'
 }
-
 
 export interface ChatSession {
   id: string
@@ -21,19 +20,22 @@ export interface ChatSession {
   lastUpdated: string
 }
 
+// 支持動態參數的設置接口
 export interface Settings {
   apiKey: string
   model: string
   provider: AIProvider
-  temperature: number
-  maxTokens: number
+  // 動態參數對象，可以包含任何模型特定的參數
+  parameters: Record<string, any>
 }
 
-// 默认设置
+// 默認設置
 export const DefaultSettings: Settings = {
   apiKey: '',
   model: DefaultModels.openai,
   provider: 'openai',
-  temperature: 0.7,
-  maxTokens: 1024
+  parameters: {
+    temperature: 0.7,
+    maxTokens: 1024
+  }
 }
